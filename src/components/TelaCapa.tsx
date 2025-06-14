@@ -1,31 +1,44 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-// @ts-ignore
-import NET from "vanta/dist/vanta.net.min";
 
 export default function TelaCapa() {
   const vantaRef = useRef<HTMLDivElement>(null);
   const vantaEffect = useRef<any>(null);
 
   useEffect(() => {
-    if (!vantaEffect.current) {
-      vantaEffect.current = NET({
-        el: vantaRef.current,
-        THREE: THREE,
-        mouseControls: true,
-        touchControls: true,
-        minHeight: 200.0,
-        minWidth: 200.0,
-        scale: 1.0,
-        scaleMobile: 1.0,
-        color: 0x05467f,
-        backgroundColor: 0x000000,
-      });
-    }
+    let isMounted = true;
+
+    const loadVanta = async () => {
+      const VANTA = await import("vanta/dist/vanta.net.min");
+
+      if (isMounted && vantaRef.current && !vantaEffect.current) {
+        try {
+          vantaEffect.current = VANTA.default({
+            el: vantaRef.current,
+            THREE: THREE,
+            mouseControls: true,
+            touchControls: true,
+            minHeight: 200.0,
+            minWidth: 200.0,
+            scale: 1.0,
+            scaleMobile: 1.0,
+            color: 0x05467f,
+            backgroundColor: 0x000000,
+          });
+        } catch (error) {
+          console.error("Erro ao criar contexto WebGL:", error);
+        }
+      }
+    };
+
+    loadVanta();
+
     return () => {
+      isMounted = false;
       if (vantaEffect.current) vantaEffect.current.destroy();
     };
   }, []);
+
 
   const handleClick = () => {
     localStorage.removeItem("rolarPara");
